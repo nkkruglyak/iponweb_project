@@ -41,7 +41,7 @@ def simple_auction_0(creatives, num_of_winners, country=""):
 
                 while chained_list[begin_ind].id_of_advertiser == chained_list[choice_ind].id_of_advertiser:
                     begin_ind -= 1
-                    if begin_ind <= 0:
+                    if begin_ind < 0:
                         break
                 while chained_list[end_ind].id_of_advertiser == chained_list[choice_ind].id_of_advertiser:
                     end_ind += 1
