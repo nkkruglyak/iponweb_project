@@ -1,4 +1,6 @@
 import random
+from itertools import chain
+
 
 def auction(creatives, num_of_winners, country=""):
     pass
@@ -25,14 +27,30 @@ def simple_auction_0(creatives, num_of_winners, country=""):
             # в каждой из этой группы  дергаем элемент
 
             # если так делать, то будет очень большая дисперсия
-            # nums_of_group = random.sample(range(ind_group), lost_winners)
-            # for num_of_group in nums_of_group:
-            #     choice_group = max_of_groups[num_of_group]
-            #     winners.append(random.choice(choice_group))
+            # for k in range(lost_winners):
+            #     ind = random.randint(0, ind_group - 1 - k)
+            #     winners.append(random.choice(max_of_groups.pop(ind)))
 
-            for k in range(lost_winners):
-                ind = random.randint(0, ind_group - 1 - k)
-                winners.append(random.choice(max_of_groups.pop(ind)))
+            chained_list = list(chain(*max_of_groups))
+            while len(winners) < num_of_winners:
+                print(chained_list)
+                all_ind = len(chained_list)
+                choice_ind = random.randint(0, all_ind - 1)
+                begin_ind = choice_ind
+                end_ind = choice_ind
+
+                while chained_list[begin_ind].id_of_advertiser == chained_list[choice_ind].id_of_advertiser:
+                    begin_ind -= 1
+                    if begin_ind <= 0:
+                        break
+                while chained_list[end_ind].id_of_advertiser == chained_list[choice_ind].id_of_advertiser:
+                    end_ind += 1
+                    if end_ind > all_ind - 1:
+                        break
+                print(begin_ind, choice_ind,end_ind)
+                winners.append(chained_list[choice_ind])
+                chained_list = chained_list[:begin_ind + 1] + chained_list[end_ind:]
+
 
             break
         else:

@@ -114,6 +114,7 @@ class ProbableAuctionTest(unittest.TestCase):
         ]
         count = 5
         all_winners_id = []
+
         for i in range(count_system_test):
             winners = simple_auction_0(creatives, count)
             all_winners_id.extend([j.id for j in winners])
@@ -126,7 +127,7 @@ class ProbableAuctionTest(unittest.TestCase):
         self.assertTrue(abs(max_counter - min_counter) < count_system_test / len(creatives),
                         "abs delta max and min  mean")
 
-    @unittest.skip("choice equiprobable by group, not by creatives")
+    # @unittest.skip("choice equiprobable by group, not by creatives")
     def test_equiprobable_in_different_and_same_groups(self):
         """
         есть несколько групп они содержат разное число элемнетов
@@ -158,6 +159,7 @@ class ProbableAuctionTest(unittest.TestCase):
         ]
         count = 7
         all_winners_id = []
+        # winners = simple_auction_0(creatives, count)
         for i in range(count_system_test):
             winners = simple_auction_0(creatives, count)
             all_winners_id.extend([j.id for j in winners])
