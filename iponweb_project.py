@@ -3,17 +3,11 @@ import random
 def auction(creatives, num_of_winners, country=""):
     pass
 
-def simple_auction_0(creatives, num_of_winners):
+def simple_auction_0(creatives, num_of_winners, country=""):
     winners = []
-
-    # элементы каждой группы имеют один id_of_advertiser
-    # эти элементы имеют максимальную цену в списке элементов с одинаковым id_of_advertiser
-    max_of_groups = get_maximums(creatives)
-
-    # равно числу разных id_of_advertiser
+    max_of_groups = get_maximums(creatives, country)
     if len(max_of_groups) < num_of_winners:
         return []
-
     max_of_groups.sort(key=lambda x: -x[0].price)
 
     while len(winners) < num_of_winners:
@@ -27,13 +21,19 @@ def simple_auction_0(creatives, num_of_winners):
             ind_group += 1
 
         if ind_group > lost_winners:
-            # случайно дергаем lost_winners ind от 0 до ind_group
+            # случайно дергаем lost_winners индексов от 0 до ind_group
             # в каждой из этой группы  дергаем элемент
 
-            nums_of_group = random.sample(range(ind_group), lost_winners)
-            for num_of_group in nums_of_group:
-                choice_group = max_of_groups[num_of_group]
-                winners.append(random.choice(choice_group))
+            # если так делать, то будет очень большая дисперсия
+            # nums_of_group = random.sample(range(ind_group), lost_winners)
+            # for num_of_group in nums_of_group:
+            #     choice_group = max_of_groups[num_of_group]
+            #     winners.append(random.choice(choice_group))
+
+            for k in range(lost_winners):
+                ind = random.randint(0, ind_group - 1 - k)
+                winners.append(random.choice(max_of_groups.pop(ind)))
+
             break
         else:
             # из каждой группы случайно дернем элемент
@@ -41,10 +41,12 @@ def simple_auction_0(creatives, num_of_winners):
                 winners.append(random.choice(max_of_groups.pop(ind)))
     return winners
 
-def get_maximums(creatives):
+def get_maximums(creatives, country=""):
     groups_by_id = dict()
 
     for el in creatives:
+        if country and el.country and country!=el.country:
+            continue
         if not groups_by_id.get(el.id_of_advertiser):
             groups_by_id[el.id_of_advertiser] = [el]
         else:
