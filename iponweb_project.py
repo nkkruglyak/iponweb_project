@@ -5,24 +5,28 @@ from itertools import chain
 def auction(creatives, num_of_winners, country=""):
     pass
 
-def simple_auction_0(creatives, num_of_winners, country=""):
+def simple_auction_0(creatives, count_winners, country=""):
     winners = []
     max_of_groups = get_maximums(creatives, country)
-    if len(max_of_groups) < num_of_winners:
+    count_of_groups = len(max_of_groups)
+    if count_of_groups < count_winners:
         return []
     max_of_groups.sort(key=lambda x: -x[0].price)
 
-    while len(winners) < num_of_winners:
-        lost_winners = num_of_winners - len(winners)
+    while len(winners) < count_winners:
+        lost_winners = count_winners - len(winners)
         bigger_groups = []
-        ind_group = 0
-        bigger_price = max_of_groups[ind_group][0].price
+        bigger_price = max_of_groups[0][0].price
 
-        while ind_group < len(max_of_groups) and max_of_groups[ind_group][0].price == bigger_price:
-            bigger_groups.append(max_of_groups[ind_group])
-            ind_group += 1
+        # группы с максимальной ценой
+        #  переложим в bigger_groups
+        while len(max_of_groups) > 0 and max_of_groups[0][0].price == bigger_price:
+            bigger_groups.append(max_of_groups.pop(0))
+        # print("bigger_groups", bigger_groups)
+        # print("max_of_groups", max_of_groups)
 
-        if ind_group > lost_winners:
+        num_bigger_groups = len(bigger_groups)
+        if num_bigger_groups > lost_winners:
             # случайно дергаем lost_winners индексов от 0 до ind_group
             # в каждой из этой группы  дергаем элемент
 
@@ -30,33 +34,16 @@ def simple_auction_0(creatives, num_of_winners, country=""):
             # for k in range(lost_winners):
             #     ind = random.randint(0, ind_group - 1 - k)
             #     winners.append(random.choice(max_of_groups.pop(ind)))
-
-            chained_list = list(chain(*max_of_groups))
-            while len(winners) < num_of_winners:
-                print(chained_list)
-                all_ind = len(chained_list)
-                choice_ind = random.randint(0, all_ind - 1)
-                begin_ind = choice_ind
-                end_ind = choice_ind
-
-                while chained_list[begin_ind].id_of_advertiser == chained_list[choice_ind].id_of_advertiser:
-                    begin_ind -= 1
-                    if begin_ind < 0:
-                        break
-                while chained_list[end_ind].id_of_advertiser == chained_list[choice_ind].id_of_advertiser:
-                    end_ind += 1
-                    if end_ind > all_ind - 1:
-                        break
-                print(begin_ind, choice_ind,end_ind)
-                winners.append(chained_list[choice_ind])
-                chained_list = chained_list[:begin_ind + 1] + chained_list[end_ind:]
-
-
+            new_winners = get_winners_from_bigger_groups(bigger_groups, lost_winners)
+            winners.extend(new_winners)
             break
         else:
             # из каждой группы случайно дернем элемент
-            for ind in range(ind_group):
-                winners.append(random.choice(max_of_groups.pop(ind)))
+            # плохая дисперсия
+            # for ind in range(num_bigger_groups):
+            #     winners.append(random.choice(bigger_groups.pop(0)))
+            new_winners = get_winners_from_bigger_groups(bigger_groups, num_bigger_groups)
+            winners.extend(new_winners)
     return winners
 
 def get_maximums(creatives, country=""):
@@ -77,3 +64,43 @@ def get_maximums(creatives, country=""):
 
     return list(groups_by_id.values())
 
+def get_winners_from_bigger_groups(bigger_groups, count_winners):
+    """
+    :param bigger_groups: [[Creative, ..], ..] все элементы имеют одну цену,
+    count_winners: число победителей
+    :return: winners, len(winners) == count_winners
+    """
+    winners = []
+    chained_list = list(chain(*bigger_groups))
+
+    shift_by_group_dict = {
+        now_el[0].id_of_advertiser:
+            (
+                sum(len(el) for i, el in enumerate(bigger_groups) if i < j),
+                sum(len(el) for i, el in enumerate(bigger_groups) if i > j)
+
+            )
+        for j, now_el in enumerate(bigger_groups)
+    }
+
+    while len(winners) < count_winners:
+        # print("chained list", chained_list)
+        # print("shifts", shift_by_group_dict)
+        choice_el = random.choice(chained_list)
+        winners.append(choice_el)
+        begin_ind, end_ind = shift_by_group_dict[choice_el.id_of_advertiser]
+        choice_group_size = len(chained_list) - begin_ind - end_ind
+        # print(choice_el.id, begin_ind, end_ind, choice_group_size)
+        if end_ind == 0:
+            chained_list[begin_ind:] = []
+        else:
+            chained_list[begin_ind: -end_ind] = []
+        shift_by_group_dict = {
+            key:
+                (
+                    el[0] - choice_group_size * (begin_ind < el[0]),
+                    el[1] - choice_group_size * (end_ind < el[1])
+                )
+            for key, el in shift_by_group_dict.items() if el[0] != begin_ind
+        }
+    return winners

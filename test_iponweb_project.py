@@ -59,9 +59,11 @@ class SimpleAuctionTest(unittest.TestCase):
 
         self.assertListEqual([i.id for i in max_of_groups[1]], [1],
                              'equal id elements in first')
+
         too_much_winners = simple_auction_0(creatives, 3)
         self.assertListEqual(too_much_winners, [],
                              'equal id elements')
+
         winners = simple_auction_0(creatives, 2)
         self.assertEqual(sum([i.price for i in winners]), sum([i[0].price for i in max_of_groups]),
                          'equal id elements')
@@ -91,6 +93,40 @@ class SimpleAuctionTest(unittest.TestCase):
         self.assertEqual(sum([i.price for i in winners]),
                          sum([i[0].price for i in max_of_groups][:2]),
                          'equal sum price')
+
+    def test_some_small_groups_with_one_price(self):
+        """
+        many groups
+
+        """
+        creatives = [
+            Creative(0, 10, 1),
+            Creative(1, 10, 2),
+            Creative(2, 10, 3, "GB"),
+            Creative(3, 10, 4, "FR"),
+            Creative(4, 10, 5),
+        ]
+        count = 3
+        winners = simple_auction_0(creatives, count)
+
+    def test_some_different_groups_with_one_price(self):
+        """
+        many groups
+        
+        """
+        creatives = [
+            Creative(0, 10, 1),
+            Creative(1, 10, 1),
+            Creative(2, 10, 3, "GB"),
+            Creative(3, 10, 4, "FR"),
+            Creative(4, 10, 4, "FR"),
+            Creative(5, 10, 5),
+            Creative(6, 10, 5),
+            Creative(7, 10, 5),
+
+        ]
+        count = 3
+        winners = simple_auction_0(creatives, count)
 
 
 class ProbableAuctionTest(unittest.TestCase):
@@ -132,11 +168,6 @@ class ProbableAuctionTest(unittest.TestCase):
         """
         есть несколько групп они содержат разное число элемнетов
         найдем count раз победителей и посчитаем суммарное число вхождений каждого участника
-
-        при данном алгоритме вероятности выбора каждого из участников не близки
-        так как алгоритм заточен под равный выбор группы
-        если бы был равновероятно выбирался каждый участник,
-        то постоянно побеждали бы участики крупных групп и почти никогда мелких
         """
         count_system_test = 1000
         creatives = [
