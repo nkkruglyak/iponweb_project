@@ -1,8 +1,7 @@
 import unittest
 from models import Creative
 from iponweb_project import get_maximums, \
-    simple_auction_0, \
-    get_winners_from_price_equal_groups_by_elments, \
+    auction, \
     get_winners_from_price_equal_groups_by_groups, \
     get_winners_from_price_equal_groups_step_by_step
 from collections import Counter
@@ -50,11 +49,11 @@ class SingleGroupTest(unittest.TestCase):
         """
         max_of_groups = get_maximums(self.creatives)
 
-        winners = simple_auction_0(self.creatives, 1)
+        winners = auction(self.creatives, 1)
         self.assertEqual(sum([i.price for i in winners]), max_of_groups[0][0].price,
                          'equal price')
 
-        empty_winners = simple_auction_0(self.creatives, 0)
+        empty_winners = auction(self.creatives, 0)
 
         self.assertListEqual([i.id for i in empty_winners], [],
                              'equal id elements')
@@ -86,7 +85,7 @@ class TwoGroupsTest(unittest.TestCase):
     def test_auction(self):
         max_of_groups = get_maximums(self.creatives)
         max_of_groups.sort(key=lambda x: -x[0].price)
-        winners = simple_auction_0(self.creatives, 1)
+        winners = auction(self.creatives, 1)
         self.assertEqual(sum([i.price for i in winners]), max_of_groups[0][0].price,
                          'equal price')
 
@@ -115,7 +114,7 @@ class SomeTwoGroupsOnePrice(unittest.TestCase):
         """
         all_winners_id = []
         for i in range(self.count_system_test):
-            winners = simple_auction_0(self.creatives, self.count, get_winners_from_price_equal_groups_by_groups)
+            winners = auction(self.creatives, self.count, get_winners_from_price_equal_groups_by_groups)
             all_winners_id.extend([j.id for j in winners])
         counter = Counter(all_winners_id)
         # print("counter", counter)
@@ -134,7 +133,7 @@ class SomeTwoGroupsOnePrice(unittest.TestCase):
 
         all_winners_id = []
         for i in range(self.count_system_test):
-            winners = simple_auction_0(self.creatives, self.count, get_winners_from_price_equal_groups_step_by_step)
+            winners = auction(self.creatives, self.count, get_winners_from_price_equal_groups_step_by_step)
             all_winners_id.extend([j.id for j in winners])
         counter = Counter(all_winners_id)
         # print("counter", counter)
@@ -150,11 +149,11 @@ class SomeTwoGroupsOnePrice(unittest.TestCase):
             она гарантирует равновероятный выбор всех победителей
             из множества возможных
         """
-        all_winners_id = []
+        all_winners_id_sets = []
         for i in range(self.count_system_test):
-            winners = simple_auction_0(self.creatives, self.count)
-            all_winners_id.extend([j.id for j in winners])
-        counter = Counter(all_winners_id)
+            winners = auction(self.creatives, self.count)
+            all_winners_id_sets.append(tuple([j.id for j in winners]))
+        counter = Counter(all_winners_id_sets)
         # print("counter", counter)
         values_counter = list(counter.values())
         max_counter = max(values_counter)
@@ -163,7 +162,7 @@ class SomeTwoGroupsOnePrice(unittest.TestCase):
                         "abs delta max and min  mean")
 
 
-class ManyGroupsOnePrice():
+class ManyGroupsOnePrice(unittest.TestCase):
     def setUp(self):
         self.creatives = [
             Creative(0, 10, 1),
@@ -195,11 +194,11 @@ class ManyGroupsOnePrice():
             функция auction этот тест не пройдет
         """
 
-        all_winners_id = []
+        all_winners_id_sets = []
         for i in range(self.count_system_test):
-            winners = simple_auction_0(self.creatives, self.count)
-            all_winners_id.extend([j.id for j in winners])
-        counter = Counter(all_winners_id)
+            winners = auction(self.creatives, self.count)
+            all_winners_id_sets.append(tuple([j.id for j in winners]))
+        counter = Counter(all_winners_id_sets)
         # print("counter", counter)
         values_counter = list(counter.values())
         max_counter = max(values_counter)
@@ -231,7 +230,7 @@ class CountryAuctionTest(unittest.TestCase):
 
         self.assertListEqual([i.id for i in max_of_groups[0]], [1, 2],
                              'equal id elements')
-        winners = simple_auction_0(creatives, 1, "FR")
+        winners = auction(creatives, 1, "FR")
 
         self.assertEqual(sum([i.price for i in winners]), max_of_groups[0][0].price,
                          'equal price')
@@ -245,7 +244,7 @@ class CountryAuctionTest(unittest.TestCase):
 
         self.assertListEqual([i.id for i in max_of_groups[0]], [0, 4],
                              'equal id elements')
-        winners = simple_auction_0(creatives, 1, "GB")
+        winners = auction(creatives, 1, "GB")
 
         self.assertEqual(sum([i.price for i in winners]), max_of_groups[0][0].price,
                          'equal price')
@@ -281,7 +280,7 @@ class CountryAuctionTest(unittest.TestCase):
         self.assertListEqual([i.id for i in max_of_groups[1]], [1],
                              'equal id elements in first')
 
-        winners = simple_auction_0(creatives, 2, "FR")
+        winners = auction(creatives, 2, "FR")
         self.assertEqual(sum([i.price for i in winners]),
                          sum([i[0].price for i in max_of_groups]),
                          'equal id elements')
@@ -300,7 +299,40 @@ class CountryAuctionTest(unittest.TestCase):
         self.assertListEqual([i.id for i in max_of_groups[1]], [1],
                              'equal id elements in first')
 
-        winners = simple_auction_0(creatives, 2, "GB")
+        winners = auction(creatives, 2, "GB")
         self.assertEqual(sum([i.price for i in winners]),
                          sum([i[0].price for i in max_of_groups]),
                          'equal id elements')
+
+
+class ManyGroupsManyPrice(unittest.TestCase):
+    def setUp(self):
+        self.creatives = [
+            Creative(0, 10, 1),
+            Creative(1, 10, 2),
+            Creative(2, 10, 3, "GB"),
+            Creative(3, 12, 4, "FR"),
+            Creative(4, 10, 5),
+            Creative(5, 10, 6),
+            Creative(6, 14, 7),
+            Creative(7, 10, 8),
+            Creative(8, 11, 9),
+            Creative(9, 10, 10),
+            Creative(10, 10, 1),
+            Creative(11, 10, 1),
+            Creative(12, 10, 1),
+            Creative(13, 14, 7),
+            Creative(14, 14, 7),
+            Creative(15, 14, 7),
+        ]
+        self.count = 4
+
+    def test_auction(self):
+        max_of_groups = get_maximums(self.creatives)
+        max_of_groups.sort(key=lambda x: -x[0].price)
+        winners = auction(self.creatives, self.count)
+        #  этот тест пройдет так как
+        #  группы победителей определяются однозначно
+        self.assertEqual(sum([i.price for i in winners]),
+                         sum([i[0].price for i in max_of_groups[:self.count]]),
+                         'equal price')

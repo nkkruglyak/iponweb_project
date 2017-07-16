@@ -81,7 +81,7 @@ def get_winners_from_price_equal_groups_by_elments(groups, count_winners):
             return possible_winners
 
 
-def simple_auction_0(creatives, count_winners, country="", get_winners=get_winners_from_price_equal_groups_by_elments):
+def auction(creatives, count_winners, country="", get_winners=get_winners_from_price_equal_groups_by_elments):
     winners = []
     max_of_groups = get_maximums(creatives, country)
     count_of_groups = len(max_of_groups)
@@ -98,24 +98,13 @@ def simple_auction_0(creatives, count_winners, country="", get_winners=get_winne
         #  переложим в bigger_groups
         while len(max_of_groups) > 0 and max_of_groups[0][0].price == bigger_price:
             bigger_groups.append(max_of_groups.pop(0))
-        # print("bigger_groups", bigger_groups)
-        # print("max_of_groups", max_of_groups)
 
         num_bigger_groups = len(bigger_groups)
         if num_bigger_groups > lost_winners:
-            # случайно дергаем lost_winners индексов от 0 до ind_group
-            # в каждой из этой группы  дергаем элемент
-
-            # если так делать, то будет очень большая дисперсия
-
             new_winners = get_winners(bigger_groups, lost_winners)
             winners.extend(new_winners)
             break
         else:
-            # из каждой группы случайно дернем элемент
-            # плохая дисперсия
-            # for ind in range(num_bigger_groups):
-            #     winners.append(random.choice(bigger_groups.pop(0)))
             new_winners = get_winners(bigger_groups, num_bigger_groups)
             winners.extend(new_winners)
     return winners
