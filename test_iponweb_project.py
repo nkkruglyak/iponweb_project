@@ -69,150 +69,31 @@ class TwoGroupsTest(unittest.TestCase):
             Creative(3, 9, 1, "FR")
         ]
 
-
-class SimpleAuctionTest(unittest.TestCase):
-
-    def test_two_group_with_id_of_advertiser(self):
+    def test_get_maximums(self):
         """
-        среди участников (объект класса Сreative) есть 2 разных id_of_advertiser
-        get_maximums вернет список из 2х списков
-        первый будет содержать 2 элемента с максимальной ценой в своей группе
-        второй список содержит только один максимум
-
-        три победителя нельзя найти в этом списке участников - это пустой список
-        два победителя имеют в сумме цену, равную сумме цен максимумов групп
+            get_maximums вернет список из одного списка
+            внутренний список состоит из двух участников
         """
-        creatives = [
-            Creative(0, 10, 0),
-            Creative(1, 12, 1),
-            Creative(2, 10, 0, "GB"),
-            Creative(3, 9, 1, "FR")
-        ]
-
-        max_of_groups = get_maximums(creatives)
-
-        self.assertEqual(len(max_of_groups), len(set(i.id_of_advertiser for i in creatives)),
+        max_of_groups = get_maximums(self.creatives)
+        self.assertEqual(len(max_of_groups), len(set(i.id_of_advertiser for i in self.creatives)),
                          'correct len of group list')
 
         self.assertListEqual([i.id for i in max_of_groups[0]], [0, 2],
-                             'equal id elements in first')
-
+                             'equal id elements')
         self.assertListEqual([i.id for i in max_of_groups[1]], [1],
-                             'equal id elements in first')
-
-        too_much_winners = simple_auction_0(creatives, 3)
-        self.assertListEqual(too_much_winners, [],
                              'equal id elements')
 
-        winners = simple_auction_0(creatives, 2)
-        self.assertEqual(sum([i.price for i in winners]), sum([i[0].price for i in max_of_groups]),
-                         'equal id elements')
-
-    def test_many_groups(self):
-        """
-        почти все группы участников по id_of_advertiser
-        состоят из одного элемента
-        """
-        creatives = [Creative(0, 10, 0),
-                     Creative(1, 12, 1),
-                     Creative(2, 10, 0, "GB"),
-                     Creative(3, 11, 1, "FR"),
-                     Creative(4, 13, 1),
-                     Creative(5, 13, 2),
-                     Creative(6, 14, 3),
-                     Creative(7, 15, 4),
-                     Creative(8, 10, 4),
-                     Creative(9, 3, 4)
-                     ]
-        max_of_groups = get_maximums(creatives)
-        self.assertEqual(len(max_of_groups), len(set(i.id_of_advertiser for i in creatives)),
-                         'correct len of group list')
-
+    def test_auction(self):
+        max_of_groups = get_maximums(self.creatives)
         max_of_groups.sort(key=lambda x: -x[0].price)
-        winners = simple_auction_0(creatives, 2)
-        self.assertEqual(sum([i.price for i in winners]),
-                         sum([i[0].price for i in max_of_groups][:2]),
-                         'equal sum price')
-
-    def test_some_small_groups_with_one_price(self):
-        """
-        many groups
-
-        """
-        creatives = [
-            Creative(0, 10, 1),
-            Creative(1, 10, 2),
-            Creative(2, 10, 3, "GB"),
-            Creative(3, 10, 4, "FR"),
-            Creative(4, 10, 5),
-        ]
-        count = 3
-        winners = simple_auction_0(creatives, count)
-
-    def test_some_different_groups_with_one_price(self):
-        """
-        many groups
-        
-        """
-        creatives = [
-            Creative(0, 10, 1),
-            Creative(1, 10, 1),
-            Creative(2, 10, 3, "GB"),
-            Creative(3, 10, 4, "FR"),
-            Creative(4, 10, 4, "FR"),
-            Creative(5, 10, 5),
-            Creative(6, 10, 5),
-            Creative(7, 10, 5),
-
-        ]
-        count = 3
-        winners = simple_auction_0(creatives, count)
+        winners = simple_auction_0(self.creatives, 1)
+        self.assertEqual(sum([i.price for i in winners]), max_of_groups[0][0].price,
+                         'equal price')
 
 
-class ProbableAuctionTest(unittest.TestCase):
-    def test_equiprobable_in_groups(self):
-        """
-        все элементы из разных группы
-        найдем 1000 раз победителей и посчитаем суммарное число вхождений каждого участника
-        тест порйдет для любой из get_winners
-        """
-        count_system_test = 1000
-        creatives = [
-            Creative(0, 10, 1),
-            Creative(1, 10, 2),
-            Creative(2, 10, 3, "GB"),
-            Creative(3, 10, 4, "FR"),
-            Creative(4, 10, 5),
-            Creative(5, 10, 6),
-            Creative(6, 10, 7),
-            Creative(7, 10, 8),
-            Creative(8, 10, 9),
-            Creative(9, 10, 10)
-        ]
-        count = 5
-        all_winners_id = []
-
-        for i in range(count_system_test):
-            winners = simple_auction_0(creatives, count, get_winners_from_price_equal_groups_by_groups)
-            all_winners_id.extend([j.id for j in winners])
-
-        counter = Counter(all_winners_id)
-        print("counter", counter)
-        values_counter = list(counter.values())
-        max_counter = max(values_counter)
-        min_counter = min(values_counter)
-        self.assertTrue(abs(max_counter - min_counter) < count_system_test / len(creatives),
-                        "abs delta max and min  mean")
-
-    def test_equiprobable_in_two_groups(self):
-        """
-                элементы из 2х группы
-                найдем 1000 раз победителей и посчитаем суммарное число вхождений каждого участника
-                тест не пройдет для любой из get_winners_from_price_equal_groups_by_groups
-                и пройдет для всех других
-                """
-        count_system_test = 1000
-        creatives = [
+class SomeTwoGroupsOnePrice(unittest.TestCase):
+    def setUp(self):
+        self.creatives = [
             Creative(0, 10, 1),
             Creative(1, 10, 1),
             Creative(2, 10, 1, "GB"),
@@ -222,30 +103,69 @@ class ProbableAuctionTest(unittest.TestCase):
             Creative(6, 10, 8),
             Creative(7, 10, 8),
         ]
-        count = 1
+        self.count_system_test = 1000
+        self.count = 1
 
+    @unittest.skip("choice equiprobable by group, not by creatives")
+    def test_equiprobable_one_winner_by_grouops(self):
+        """
+            этот тест не проходит так как функция get_winners_from_price_equal_groups_by_groups
+            гарантирует равновероятный выбор между группами,
+            а не между элементами
+        """
         all_winners_id = []
-        for i in range(count_system_test):
-            winners = simple_auction_0(creatives, count, get_winners_from_price_equal_groups_step_by_step)
+        for i in range(self.count_system_test):
+            winners = simple_auction_0(self.creatives, self.count, get_winners_from_price_equal_groups_by_groups)
             all_winners_id.extend([j.id for j in winners])
-
         counter = Counter(all_winners_id)
-        print("counter", counter)
+        # print("counter", counter)
         values_counter = list(counter.values())
         max_counter = max(values_counter)
         min_counter = min(values_counter)
-        self.assertTrue(abs(max_counter - min_counter) < count_system_test / len(creatives),
+        self.assertTrue(abs(max_counter - min_counter) < self.count_system_test / len(self.creatives),
                         "abs delta max and min  mean")
 
-    # @unittest.skip("choice equiprobable by group, not by creatives")
-    def test_equiprobable_in_different_and_same_groups(self):
+    def test_equiprobable_one_winner_step_by_step(self):
         """
-        есть несколько групп они содержат разное число элемнетов
-        найдем count раз победителей и посчитаем суммарное число вхождений каждого участника
-        пройдет только для get_winners_from_price_equal_groups_by_elments
+            get_winners_from_price_equal_groups_step_by_step
+            гарантирует на каждом шаге равновероятный выбор 
+            поэтому тест с выбором одного победителя проходит
         """
-        count_system_test = 1000
-        creatives = [
+
+        all_winners_id = []
+        for i in range(self.count_system_test):
+            winners = simple_auction_0(self.creatives, self.count, get_winners_from_price_equal_groups_step_by_step)
+            all_winners_id.extend([j.id for j in winners])
+        counter = Counter(all_winners_id)
+        # print("counter", counter)
+        values_counter = list(counter.values())
+        max_counter = max(values_counter)
+        min_counter = min(values_counter)
+        self.assertTrue(abs(max_counter - min_counter) < self.count_system_test / len(self.creatives),
+                        "abs delta max and min  mean")
+
+    def test_equiprobable_one_winner_by_elements(self):
+        """
+            get_winners_from_price_equal_groups_by_elments идет по умолчани в auction
+            она гарантирует равновероятный выбор всех победителей
+            из множества возможных
+        """
+        all_winners_id = []
+        for i in range(self.count_system_test):
+            winners = simple_auction_0(self.creatives, self.count)
+            all_winners_id.extend([j.id for j in winners])
+        counter = Counter(all_winners_id)
+        # print("counter", counter)
+        values_counter = list(counter.values())
+        max_counter = max(values_counter)
+        min_counter = min(values_counter)
+        self.assertTrue(abs(max_counter - min_counter) < self.count_system_test / len(self.creatives),
+                        "abs delta max and min  mean")
+
+
+class ManyGroupsOnePrice():
+    def setUp(self):
+        self.creatives = [
             Creative(0, 10, 1),
             Creative(1, 10, 2),
             Creative(2, 10, 3, "GB"),
@@ -263,31 +183,36 @@ class ProbableAuctionTest(unittest.TestCase):
             Creative(14, 10, 7),
             Creative(15, 10, 7),
         ]
+        self.count = 3
+        self.count_system_test = 1000
 
-        count = 3
-        all_winners_id_sets = []
+    def test_equiprobable_one_winner_by_elements(self):
+        """
+            get_winners_from_price_equal_groups_by_elments идет по умолчани в auction
+            она гарантирует равновероятный выбор всех победителей
+            из множества возможных
+            при другом значении аргумента get_winners
+            функция auction этот тест не пройдет
+        """
 
-        # winners = simple_auction_0(creatives, count)
-
-        for i in range(count_system_test):
-            winners = simple_auction_0(creatives, count)
-            sorted_id = tuple(sorted([j.id for j in winners]))
-            all_winners_id_sets.append(sorted_id)
-
-        counter = Counter(all_winners_id_sets)
-        print("counter", counter)
+        all_winners_id = []
+        for i in range(self.count_system_test):
+            winners = simple_auction_0(self.creatives, self.count)
+            all_winners_id.extend([j.id for j in winners])
+        counter = Counter(all_winners_id)
+        # print("counter", counter)
         values_counter = list(counter.values())
         max_counter = max(values_counter)
         min_counter = min(values_counter)
-        self.assertTrue(abs(max_counter - min_counter) / 2 < count_system_test / len(creatives),
+        self.assertTrue(abs(max_counter - min_counter) < self.count_system_test / len(self.creatives),
                         "abs delta max and min  mean")
 
 
 class CountryAuctionTest(unittest.TestCase):
     def test_one_group_with_id_of_advertiser(self):
         """
-        если третий аргумент "FR", возможных победителей 2: с айди 1 и 2
-        если третий аргумент "GB", возможных победителей 2: с айди 0 и 4
+            если третий аргумент "FR", возможных победителей 2: с айди 1 и 2
+            если третий аргумент "GB", возможных победителей 2: с айди 0 и 4
         """
 
         creatives = [
