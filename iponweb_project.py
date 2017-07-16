@@ -80,7 +80,7 @@ def get_winners_from_price_equal_groups_by_groups(groups, count_winners):
         winners.append(random.choice(groups.pop(ind)))
 
 
-def get_winners_from_price_equal_groups_by_elments(groups, count_winners):
+def get_winners_from_price_equal_groups_by_elements(groups, count_winners):
     """
     :param groups: [[Creative(), ..],...], элементы внутреннего списка имеют один id_of_advertiser,все имеют одну price
     :param count_winners: int, число победителей
@@ -95,7 +95,7 @@ def get_winners_from_price_equal_groups_by_elments(groups, count_winners):
             return possible_winners
 
 
-def auction(creatives, count_winners, country="", get_winners=get_winners_from_price_equal_groups_by_elments):
+def auction(creatives, count_winners, country="", get_winners=get_winners_from_price_equal_groups_by_elements):
     """
     
     :param creatives: [Creative(), ..] участиники аукциона - экземпляры модели Creative 
