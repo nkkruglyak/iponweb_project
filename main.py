@@ -27,10 +27,11 @@ def get_maximums(creatives, country=""):
     return list(groups_by_id.values())
 
 
-def get_winners_from_price_equal_groups_step_by_step(groups, count_winners):
+def get_winners_from_price_equal_groups_step_by_step(groups, num_winners):
     """
-    :param groups: [[Creative(), ..],...], элементы внутреннего списка имеют один id_of_advertiser,все имеют одну price
-    :param count_winners: int, число победителей
+    :param groups: [[Creative(), ..],...], элементы внутреннего списка имеют
+    один id_of_advertiser,все имеют одну price
+    :param num_winners: int, число победителей
     :return: [Creative(), ..], принимает решение о выборе один-за-другим,
      поэтому выбор множества победителей выходит не равновероятным
     """
@@ -47,7 +48,7 @@ def get_winners_from_price_equal_groups_step_by_step(groups, count_winners):
         for j, now_el in enumerate(groups)
     }
 
-    while len(winners) < count_winners:
+    while len(winners) < num_winners:
         choice_el = random.choice(chained_list)
         winners.append(choice_el)
         begin_ind, end_ind = shift_by_group_dict[choice_el.id_of_advertiser]
@@ -67,39 +68,42 @@ def get_winners_from_price_equal_groups_step_by_step(groups, count_winners):
     return winners
 
 
-def get_winners_from_price_equal_groups_by_groups(groups, count_winners):
+def get_winners_from_price_equal_groups_by_groups(groups, num_winners):
     """
-    :param groups: [[Creative(), ..],...], элементы внутреннего списка имеют один id_of_advertiser,все имеют одну price
-    :param count_winners: int, число победителей
-    :return: [Creative(), ..], принимает решение о выборе сначала группы, потом элемента в группе
+    :param groups: [[Creative(), ..],...], элементы внутреннего списка имеют
+    один id_of_advertiser,все имеют одну price
+    :param num_winners: int, число победителей
+    :return: [Creative(), ..], принимает решение о выборе сначала группы,
+    потом элемента в группе
     """
     winners = []
     num_group = len(groups)
-    for k in range(count_winners):
+    for k in range(num_winners):
         ind = random.randint(0, num_group - 1 - k)
         winners.append(random.choice(groups.pop(ind)))
 
 
-def get_winners_from_price_equal_groups_by_elements(groups, count_winners):
+def get_winners_from_price_equal_groups_by_elements(groups, num_winners):
     """
-    :param groups: [[Creative(), ..],...], элементы внутреннего списка имеют один id_of_advertiser,все имеют одну price
-    :param count_winners: int, число победителей
+    :param groups: [[Creative(), ..],...], элементы внутреннего списка имеют
+    один id_of_advertiser,все имеют одну price
+    :param num_winners: int, число победителей
     :return: [Creative(), ..], принимает решение о выборе сразу всех победителей
     """
 
     chained_list = list(chain(*groups))
 
     while True:
-        possible_winners = random.sample(chained_list, count_winners)
-        if len(set(i.id_of_advertiser for i in possible_winners)) == count_winners:
+        possible_winners = random.sample(chained_list, num_winners)
+        if len(set(i.id_of_advertiser for i in possible_winners)) == num_winners:
             return possible_winners
 
 
-def auction(creatives, count_winners, country="", get_winners=get_winners_from_price_equal_groups_by_elements):
+def auction(creatives, num_winners, country="", get_winners=get_winners_from_price_equal_groups_by_elements):
     """
     
     :param creatives: [Creative(), ..] участиники аукциона - экземпляры модели Creative 
-    :param count_winners: int, необходимое число победителей
+    :param num_winners: int, необходимое число победителей
     :param country: string, страна победителей
     :param get_winners: func, функция выбора победителей из группы равноправных
     :return: [Creative(), ..] список победителей из creatives
@@ -107,18 +111,18 @@ def auction(creatives, count_winners, country="", get_winners=get_winners_from_p
     winners = []
     max_of_groups = get_maximums(creatives, country)
     count_of_groups = len(max_of_groups)
-    if count_of_groups < count_winners:
+    if count_of_groups < num_winners:
         return []
     max_of_groups.sort(key=lambda x: -x[0].price)
 
-    while len(winners) < count_winners:
-        lost_winners = count_winners - len(winners)
+    while len(winners) < num_winners:
+        lost_winners = num_winners - len(winners)
         bigger_groups = []
-        bigger_price = max_of_groups[0][0].price
+        max_price = max_of_groups[0][0].price
 
         # группы с максимальной ценой
         #  переложим в bigger_groups
-        while len(max_of_groups) > 0 and max_of_groups[0][0].price == bigger_price:
+        while len(max_of_groups) > 0 and max_of_groups[0][0].price == max_price:
             bigger_groups.append(max_of_groups.pop(0))
 
         num_bigger_groups = len(bigger_groups)

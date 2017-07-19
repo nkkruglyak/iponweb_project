@@ -1,6 +1,6 @@
 import unittest
 from models import Creative
-from iponweb_project import get_maximums, \
+from main import get_maximums, \
     auction, \
     get_winners_from_price_equal_groups_by_groups, \
     get_winners_from_price_equal_groups_step_by_step
